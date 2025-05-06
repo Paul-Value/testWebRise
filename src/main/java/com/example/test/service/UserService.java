@@ -1,5 +1,6 @@
 package com.example.test.service;
 
+import com.example.test.exception.ResourceNotFoundException;
 import com.example.test.model.User;
 import com.example.test.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,5 +21,22 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // Методы для получения, обновления, удаления
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+    }
+
+    public User updateUser(Long id, User userDetails) {
+        User user = getUserById(id);
+        user.setName(userDetails.getName());
+        user.setEmail(userDetails.getEmail());
+        log.info("Updating user: {}", id);
+        return userRepository.save(user);
+    }
+
+    public void deleteUser(Long id) {
+        User user = getUserById(id);
+        log.info("Deleting user: {}", id);
+        userRepository.delete(user);
+    }
 }
