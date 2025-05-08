@@ -1,5 +1,6 @@
 package com.example.test.service;
 
+import com.example.test.exception.ResourceNotFoundException;
 import com.example.test.model.Subscription;
 import com.example.test.model.User;
 import com.example.test.model.dto.SubscriptionDTO;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,8 +45,15 @@ public class SubscriptionService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteSubscription(Long id) {
-        subscriptionRepository.deleteById(id);
-        log.info("Deleting subscription for user {}", id);
+    public void deleteSubscription(Long userId, Long subId) throws AccessDeniedException {
+        Subscription subscription = subscriptionRepository.findById(subId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found"));
+
+        if (!subscription.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException("Subscription does not belong to the user");
+        }
+
+        subscriptionRepository.delete(subscription);
+        log.info("Deleting subscription for user {}", userId);
     }
 }
